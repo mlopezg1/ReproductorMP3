@@ -8,6 +8,12 @@ SFEMP3Shield MP3player;				// MP3 Shield Object
 
 const int chipSelect = 9;
 
+#define c_min 1 					// min numero de canciones en sd
+#define c_max 10					//max numero de canciones en sd
+
+int track_n= 0;
+int track_l= 0;
+
 void setup() {
 
 	Serial.begin(115200);
@@ -34,7 +40,12 @@ void findArtist()
 	while(!match)
 	{
 		randomSeed(millis());
-		track_n = (uint8_t)random(1,11);
+		track_n = (random(c_min,c_max+1));
+    	while (track_n == track_l)
+    	{ 
+      		track_n = int(random(c_min, c_max + 0.99));  // para tomar una selección difente a la ultima
+    	}
+    	track_l = track_n;
 	    MP3player.playTrack(track_n);
 		char buffer[16];
 		MP3player.trackArtist(buffer);
@@ -48,37 +59,42 @@ void findArtist()
 	while(match)
 	{
 	
-	MP3player.playTrack(track_n);
-	Serial.print("Track ");
-	Serial.print(track_n);
-	char buffer[16];
-	MP3player.trackTitle(buffer);
-	Serial.print(" - ");
-	Serial.println(buffer);
+		MP3player.playTrack(track_n);
+		Serial.print("Track ");
+		Serial.print(track_n);
+		char buffer[16];
+		MP3player.trackTitle(buffer);
+		Serial.print(" - ");
+		Serial.println(buffer);
 
-	while(MP3player.isPlaying())
-	{
-		String repro=readString();
-		if(repro=="pausa")
+		while(MP3player.isPlaying())
 		{
-			MP3player.pauseMusic();
+			String repro=readString();
+			if(repro=="pausa")
+			{
+				MP3player.pauseMusic();
+			}
+			if(repro=="play")
+			{
+				MP3player.resumeMusic();
+			}
+			if(repro=="next")
+			{
+				match=false;
+				MP3player.stopTrack();
+			}
+			if(repro=="artista")
+			{
+				match=false;
+				cont=1;
+	 			MP3player.stopTrack();	
+			}
 		}
-		if(repro=="play")
-		{
-			MP3player.resumeMusic();
-		}
-		if(repro=="next")
+
+		if(!MP3player.isPlaying())
 		{
 			match=false;
 		}
-		if(repro=="artista")
-		{
-			match=false;
-			cont=1;
- 			MP3player.stopTrack();
- 			
-		}
-	}
 	}
 	}
 }
