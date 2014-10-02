@@ -11,6 +11,8 @@ const int chipSelect = 9;
 #define c_min 1 					// min numero de canciones en sd
 #define c_max 10					//max numero de canciones en sd
 
+uint8_t v_min= 70;
+uint8_t v_max= 20;
 int track_n= 0;
 int track_l= 0;
 
@@ -19,7 +21,7 @@ void setup() {
 	Serial.begin(115200);
 	sd.begin(chipSelect,SPI_HALF_SPEED);
 	MP3player.begin();
-
+	MP3player.setVolume(v_min);
 }
 
 void loop()
@@ -43,9 +45,8 @@ void findArtist()
 		track_n = (random(c_min,c_max+1));
     	while (track_n == track_l)
     	{ 
-      		track_n = int(random(c_min, c_max + 0.99));  // para tomar una selección difente a la ultima
+      		track_n = int(random(c_min, c_max + 0.99));  
     	}
-    	track_l = track_n;
 	    MP3player.playTrack(track_n);
 		char buffer[16];
 		MP3player.trackArtist(buffer);
@@ -60,12 +61,15 @@ void findArtist()
 	{
 	
 		MP3player.playTrack(track_n);
-		Serial.print("Track ");
+		Serial.print("\nTrack ");
 		Serial.print(track_n);
+		track_l=track_n;
 		char buffer[16];
 		MP3player.trackTitle(buffer);
 		Serial.print(" - ");
 		Serial.println(buffer);
+		Serial.println("\n¿¿¿¿AYUDA????: \n Escribe 'ayuda' para intervenir en la reproducción :)");
+
 
 		while(MP3player.isPlaying())
 		{
@@ -83,11 +87,30 @@ void findArtist()
 				match=false;
 				MP3player.stopTrack();
 			}
+			if(repro=="-")
+			{
+				v_min=v_min+10;
+				MP3player.setVolume(v_min);
+			}
+			if(repro=="+")
+			{
+					v_min=v_min-10;
+					MP3player.setVolume(v_min);		
+
+			}
 			if(repro=="artista")
 			{
 				match=false;
 				cont=1;
 	 			MP3player.stopTrack();	
+			}
+			if(repro=="ayuda")
+			{
+				Serial.println("\n¿QUE DESEAS HACER?");
+				Serial.println("\nSubir o bajar Volumen: Escriba '+' o '-'");
+				Serial.println("Cambiar de artista: Escriba 'artista'");
+				Serial.println("Pausar la cancion: Escriba 'pausa'");
+				Serial.println("Cambiar la cancion: Escriba 'next'");
 			}
 		}
 
@@ -103,8 +126,8 @@ void findArtist()
 
 String intartista()
 {
-  Serial.println("Que artista desea escuchar?? ");
-  Serial.println("Escoge entre Calvin Harris, Shakira, Juanes");
+  Serial.println("\nQue artista desea escuchar?? ");
+  Serial.println("Escoge entre: Calvin Harris, Shakira, Juanes");
   String tipo = "";
   while (tipo == "")
   {
